@@ -35,8 +35,14 @@ public class AuthController {
     }
 
     //"/logout"
+//    public ResponseEntity<ApiResponse<Void>> logout(){
+//
+//    }
 
     //"/refresh"
+//    public ResponseEntity<ApiResponse<Void>> refreshToken(){
+//
+//    }
 
     //"/me"
 }

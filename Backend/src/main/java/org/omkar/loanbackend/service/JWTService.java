@@ -13,6 +13,7 @@ import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 
 @Service
@@ -21,12 +22,22 @@ public class JWTService {
     @Value("${jwt.secret}")
     private String secretKey;
 
+    private final TokenService tokenService;
+
+    public JWTService(TokenService tokenService) {
+        this.tokenService = tokenService;
+    }
+
     public String generateToken(String username) {
+        String jti = tokenService.generateJti();
+
         Map<String, Object> claims = new HashMap<>();
+
         return Jwts.builder()
                 .claims()
                 .add(claims)
                 .subject(username)
+                .id(jti)
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 15))
                 .and()

@@ -23,11 +23,14 @@ public class UserService {
 
     private final PasswordEncoder encoder;
 
-    public UserService(UserRepo repo, AuthenticationManager authManager, JWTService jwtService, PasswordEncoder encoder) {
+    private final TokenService tokenService;
+
+    public UserService(UserRepo repo, AuthenticationManager authManager, JWTService jwtService, PasswordEncoder encoder, TokenService tokenService) {
         this.repo = repo;
         this.authManager = authManager;
         this.jwtService = jwtService;
         this.encoder = encoder;
+        this.tokenService = tokenService;
     }
 
     public void registerUser(RegisterRequest request) {
@@ -47,8 +50,9 @@ public class UserService {
         Authentication authentication = authManager
                 .authenticate(new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
 
-        String token = jwtService.generateToken(authentication.getName());
+        String accessToken = jwtService.generateToken(authentication.getName());
+        String refreshToken = tokenService.generateRefreshToken();
 
-        return new LoginResponse(token);
+        return new LoginResponse(accessToken,refreshToken);
     }
 }
