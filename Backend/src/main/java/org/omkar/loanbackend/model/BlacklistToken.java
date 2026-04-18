@@ -3,6 +3,7 @@ package org.omkar.loanbackend.model;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Entity
@@ -22,5 +23,5 @@ public class BlacklistToken {
     private String jti;
 
     @Column(nullable = false)
-    private LocalDateTime expiryTime;
+    private Instant expiryTime;
 }

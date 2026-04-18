@@ -3,6 +3,8 @@ package org.omkar.loanbackend.model;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Entity
@@ -22,14 +24,14 @@ public class RefreshToken {
 
     private boolean revoked;
 
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
-    private LocalDateTime expiryDate;
+    private Instant expiryDate;
 
     @PrePersist
     public void prePersist() {
-        this.createdAt = LocalDateTime.now();
-        this.expiryDate = this.createdAt.plusDays(7);
+        this.createdAt = Instant.now();
+        this.expiryDate = this.createdAt.plus(Duration.ofDays(7));
         this.revoked = false;
     }
 

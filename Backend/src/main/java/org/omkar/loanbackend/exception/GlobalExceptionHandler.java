@@ -15,6 +15,18 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(JtiNotFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleJtiNotFound(JtiNotFoundException ex){
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(new ApiResponse<>(ex.getMessage(), null,false));
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiResponse<Void>> handleIllegalArgument(IllegalArgumentException ex){
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ApiResponse<>(ex.getMessage(), null,false));
+    }
+
     @ExceptionHandler(UsernameAlreadyExistsException.class)
     public ResponseEntity<ApiResponse<Void>> handleUsernameExists(UsernameAlreadyExistsException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
