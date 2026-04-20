@@ -1,4 +1,4 @@
-package org.omkar.loanbackend.exception;
+package org.omkar.loanbackend.exception.custom;
 
 public class UsernameAlreadyExistsException extends RuntimeException{
 

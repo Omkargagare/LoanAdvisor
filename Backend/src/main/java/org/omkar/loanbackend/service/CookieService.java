@@ -13,6 +13,7 @@ public class CookieService {
         cookie.setSecure(true);
         cookie.setPath("/api/v1/auth");
         cookie.setMaxAge(7 * 24 * 60 * 60);
+        cookie.setAttribute("SameSite", "None");
         response.addCookie(cookie);
     }
 
@@ -22,6 +23,17 @@ public class CookieService {
         cookie.setSecure(true);
         cookie.setPath("/api/v1/auth");
         cookie.setMaxAge(0);
+        cookie.setAttribute("SameSite", "None");
+        response.addCookie(cookie);
+    }
+
+    public void addCsrfToken(HttpServletResponse response, String csrfToken){
+        Cookie cookie = new Cookie("csrfToken",csrfToken);
+        cookie.setHttpOnly(false);
+        cookie.setSecure(true);
+        cookie.setPath("/api/v1/auth");
+        cookie.setMaxAge(7 * 24 * 60 * 60);
+        cookie.setAttribute("SameSite", "None");
         response.addCookie(cookie);
     }
 }

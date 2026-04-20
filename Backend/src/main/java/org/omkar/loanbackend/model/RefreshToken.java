@@ -39,4 +39,7 @@ public class RefreshToken {
     @JoinColumn(name = "user_id", nullable = false)
     private Users user;
 
+    public boolean isExpired() {
+        return !expiryDate.isAfter(Instant.now());
+    }
 }

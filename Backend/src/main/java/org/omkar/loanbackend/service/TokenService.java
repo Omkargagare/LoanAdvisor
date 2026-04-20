@@ -1,9 +1,11 @@
 package org.omkar.loanbackend.service;
 
 import org.omkar.loanbackend.model.RefreshToken;
+import org.omkar.loanbackend.model.Users;
 import org.omkar.loanbackend.repo.RefreshTokenRepo;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -15,9 +17,10 @@ public class TokenService {
         this.repo = repo;
     }
 
-    String generateRefreshToken() {
+    String generateRefreshToken(Users user) {
         RefreshToken refreshToken = new RefreshToken();
         refreshToken.setToken(UUID.randomUUID().toString() + UUID.randomUUID());
+        refreshToken.setUser(user);
         repo.save(refreshToken);
 
         return refreshToken.getToken();
@@ -25,5 +28,14 @@ public class TokenService {
 
     public String generateJti() {
         return UUID.randomUUID().toString();
+    }
+
+    public String generateCsrfToken(){return UUID.randomUUID().toString();}
+
+    public void revokeAllUserTokens(Users user) {
+        List<RefreshToken> tokens = repo.findAllByUser(user);
+
+        tokens.forEach(token -> token.setRevoked(true));
+        repo.saveAll(tokens);
     }
 }

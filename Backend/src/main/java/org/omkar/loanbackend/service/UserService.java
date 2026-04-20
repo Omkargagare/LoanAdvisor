@@ -1,10 +1,12 @@
 package org.omkar.loanbackend.service;
 
+import org.apache.catalina.User;
 import org.jspecify.annotations.NonNull;
 import org.omkar.loanbackend.dto.AuthTokens;
 import org.omkar.loanbackend.dto.LoginRequest;
 import org.omkar.loanbackend.dto.RegisterRequest;
-import org.omkar.loanbackend.exception.UsernameAlreadyExistsException;
+import org.omkar.loanbackend.exception.custom.InvalidRefreshTokenException;
+import org.omkar.loanbackend.exception.custom.UsernameAlreadyExistsException;
 import org.omkar.loanbackend.model.BlacklistToken;
 import org.omkar.loanbackend.model.RefreshToken;
 import org.omkar.loanbackend.model.Users;
@@ -14,7 +16,7 @@ import org.omkar.loanbackend.repo.UserRepo;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -63,10 +65,14 @@ public class UserService {
         Authentication authentication = authManager
                 .authenticate(new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
 
-        String accessToken = jwtService.generateToken(authentication.getName());
-        String refreshToken = tokenService.generateRefreshToken();
+        String accessToken = jwtService.generateAccessToken(authentication.getName());
 
-        return new AuthTokens(accessToken, refreshToken);
+        Users user = userRepo.findByUsername(request.getUsername())
+                .orElseThrow(()-> new UsernameNotFoundException("User not found"));
+        String refreshToken = tokenService.generateRefreshToken(user);
+        String csrfToken = tokenService.generateCsrfToken();
+
+        return new AuthTokens(accessToken, refreshToken, csrfToken);
     }
 
     public void logoutSession(String accessToken, String refreshToken) {
@@ -89,5 +95,30 @@ public class UserService {
                         refreshTokenRepo.save(token);
                     });
         }
+    }
+
+    public AuthTokens refresh(String refreshToken) {
+        RefreshToken token = refreshTokenRepo.findByToken(refreshToken)
+                .orElseThrow(() -> new InvalidRefreshTokenException("Invalid refresh token"));
+
+        Users user = token.getUser();
+
+        if(token.isRevoked()){
+            tokenService.revokeAllUserTokens(user);
+            throw new InvalidRefreshTokenException("Invalid refresh token");
+        }
+
+        if(token.isExpired())   throw new InvalidRefreshTokenException("Refresh token expired");
+
+        token.setRevoked(true);
+        refreshTokenRepo.save(token);
+
+        String newAccessToken = jwtService.generateAccessToken(user.getUsername());
+
+        String newRefreshToken = tokenService.generateRefreshToken(user);
+
+        String newCsrfToken = tokenService.generateCsrfToken();
+
+        return new AuthTokens(newAccessToken,newRefreshToken,newCsrfToken);
     }
 }

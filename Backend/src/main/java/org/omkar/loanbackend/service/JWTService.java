@@ -5,7 +5,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
-import org.omkar.loanbackend.exception.JtiNotFoundException;
+import org.omkar.loanbackend.exception.custom.JtiNotFoundException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -16,7 +16,6 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 import java.util.function.Function;
 
 @Service
@@ -30,7 +29,7 @@ public class JWTService {
         this.tokenService = tokenService;
     }
 
-    public String generateToken(String username) {
+    public String generateAccessToken(String username) {
         String jti = tokenService.generateJti();
 
         Map<String, Object> claims = new HashMap<>();
