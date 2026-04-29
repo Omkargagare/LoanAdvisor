@@ -70,7 +70,7 @@ public class UserService {
         Users user = userRepo.findByUsername(request.getUsername())
                 .orElseThrow(()-> new UsernameNotFoundException("User not found"));
         String refreshToken = tokenService.generateRefreshToken(user);
-        String csrfToken = tokenService.generateCsrfToken();
+        String csrfToken = tokenService.generateCsrfToken(refreshToken);
 
         return new AuthTokens(accessToken, refreshToken, csrfToken);
     }
@@ -92,6 +92,7 @@ public class UserService {
             refreshTokenRepo.findByToken(refreshToken)
                     .ifPresent(token -> {
                         token.setRevoked(true);
+                        token.setCsrfToken(null);
                         refreshTokenRepo.save(token);
                     });
         }
@@ -117,7 +118,7 @@ public class UserService {
 
         String newRefreshToken = tokenService.generateRefreshToken(user);
 
-        String newCsrfToken = tokenService.generateCsrfToken();
+        String newCsrfToken = tokenService.generateCsrfToken(newRefreshToken);
 
         return new AuthTokens(newAccessToken,newRefreshToken,newCsrfToken);
     }

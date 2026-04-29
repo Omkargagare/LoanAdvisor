@@ -28,6 +28,8 @@ public class RefreshToken {
 
     private Instant expiryDate;
 
+    private String csrfToken;
+
     @PrePersist
     public void prePersist() {
         this.createdAt = Instant.now();
