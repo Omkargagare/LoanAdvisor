@@ -1,6 +1,7 @@
 package org.omkar.loanbackend.service;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -68,7 +69,20 @@ public class JWTService {
                 .getPayload();
     }
 
-    public boolean validateToken(String token, UserDetails userDetails) {
+    public boolean validateTokenSignature(String token) {
+        try {
+            Jwts.parser()
+                    .verifyWith((SecretKey) getKey())
+                    .build()
+                    .parseSignedClaims(token);
+
+            return true;
+        } catch (JwtException e) {
+            return false;
+        }
+    }
+
+    public boolean validateTokenWithUser(String token, UserDetails userDetails) {
         final String userName = extractUsername(token);
         return (userName.equals(userDetails.getUsername()) && !isTokenExpired(token));
 

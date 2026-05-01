@@ -6,6 +6,7 @@ import org.omkar.loanbackend.model.Users;
 import org.omkar.loanbackend.repo.RefreshTokenRepo;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -46,13 +47,8 @@ public class TokenService {
         return csrfToken;
     }
 
+    @Transactional
     public void revokeAllUserTokens(Users user) {
-        List<RefreshToken> tokens = repo.findAllByUser(user);
-
-        tokens.forEach(token -> {
-            token.setRevoked(true);
-            token.setCsrfToken(null);
-        });
-        repo.saveAll(tokens);
+        repo.revokeAllActiveTokens(user);
     }
 }

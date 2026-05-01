@@ -8,7 +8,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.omkar.loanbackend.repo.BlacklistTokenRepo;
 import org.omkar.loanbackend.service.JWTService;
 import org.omkar.loanbackend.service.MyUserDetailsService;
-import org.omkar.loanbackend.service.TokenService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -37,6 +36,19 @@ public class JWTFilter extends OncePerRequestFilter {
         this.blacklistTokenRepo = blacklistTokenRepo;
     }
 
+    public void sendError(HttpServletResponse response,String message) {
+        try {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter().write(
+                    "{\"message\": \"" + message + "\", \"data\": null, \"success\": false}"
+            );
+        } catch (IOException e) {
+            logger.error("Failed to write error response", e);
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        }
+    }
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String authHeader = request.getHeader("Authorization");
@@ -46,38 +58,35 @@ public class JWTFilter extends OncePerRequestFilter {
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             token = authHeader.substring(7);
             try {
+                if(jwtService.validateTokenSignature(token)){
+                    sendError(response,"Invalid token");
+                    return;
+                }
+
                 username = jwtService.extractUsername(token);
+                String jti = jwtService.extractJtiFromToken(token);
+
+                if(blacklistTokenRepo.existsById(jti)){
+                    sendError(response,"Token revoked");
+                    return;
+                }
             } catch (ExpiredJwtException e) {
                 logger.warn("JWT expired: {}", e.getMessage());
 
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.setContentType("application/json");
-                response.getWriter().write(
-                        "{\"message\": \"Token expired\", \"data\": null, \"success\": false}"
-                );
+                sendError(response,"Token expired");
                 return;
             } catch (Exception e) {
                 logger.warn("JWT invalid: {}", e.getMessage());
 
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.setContentType("application/json");
-                response.getWriter().write(
-                        "{\"message\": \"Invalid token\", \"data\": null, \"success\": false}"
-                );
+                sendError(response,"Invalid token");
                 return;
             }
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-            if (jwtService.validateToken(token, userDetails)) {
 
-                String jti = jwtService.extractJtiFromToken(token);
-
-                if(blacklistTokenRepo.f){
-
-                }
-
+            if (jwtService.validateTokenWithUser(token, userDetails)) {
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails,
                         null, userDetails.getAuthorities());
                 authToken.setDetails(new WebAuthenticationDetailsSource()

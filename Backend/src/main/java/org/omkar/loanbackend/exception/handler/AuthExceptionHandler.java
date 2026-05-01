@@ -22,7 +22,7 @@ public class AuthExceptionHandler {
 
     @ExceptionHandler(CsrfValidationException.class)
     public ResponseEntity<ApiResponse<Void>> handleInvalidCsrfToken(CsrfValidationException ex){
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body(new ApiResponse<>(ex.getMessage(), null,false));
     }
 

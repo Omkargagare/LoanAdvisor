@@ -65,6 +65,8 @@ public class AuthController {
 
         cookieService.removeRefreshToken(response);
 
+        cookieService.removeCsrfToken(response);
+
         return ResponseEntity.ok(new ApiResponse<>("Logout", null, true));
     }
 

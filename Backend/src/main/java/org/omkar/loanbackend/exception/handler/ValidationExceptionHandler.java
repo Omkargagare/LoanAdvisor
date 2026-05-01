@@ -12,7 +12,7 @@ public class ValidationExceptionHandler     {
 
     @ExceptionHandler(UsernameAlreadyExistsException.class)
     public ResponseEntity<ApiResponse<Void>> handleUsernameExists(UsernameAlreadyExistsException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(new ApiResponse<>(ex.getMessage(), null, false));
     }
 
