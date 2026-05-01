@@ -5,8 +5,10 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.omkar.loanbackend.repo.BlacklistTokenRepo;
 import org.omkar.loanbackend.service.JWTService;
 import org.omkar.loanbackend.service.MyUserDetailsService;
+import org.omkar.loanbackend.service.TokenService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -21,15 +23,18 @@ import java.io.IOException;
 @Component
 public class JWTFilter extends OncePerRequestFilter {
 
-    private final JWTService service;
+    private final JWTService jwtService;
 
     private final MyUserDetailsService userDetailsService;
 
+    private final BlacklistTokenRepo blacklistTokenRepo;
+
     private static final Logger logger = LoggerFactory.getLogger(JWTFilter.class);
 
-    public JWTFilter(JWTService service, MyUserDetailsService userDetailsService) {
-        this.service = service;
+    public JWTFilter(JWTService service, MyUserDetailsService userDetailsService, BlacklistTokenRepo blacklistTokenRepo) {
+        this.jwtService = service;
         this.userDetailsService = userDetailsService;
+        this.blacklistTokenRepo = blacklistTokenRepo;
     }
 
     @Override
@@ -41,7 +46,7 @@ public class JWTFilter extends OncePerRequestFilter {
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             token = authHeader.substring(7);
             try {
-                username = service.extractUsername(token);
+                username = jwtService.extractUsername(token);
             } catch (ExpiredJwtException e) {
                 logger.warn("JWT expired: {}", e.getMessage());
 
@@ -65,7 +70,14 @@ public class JWTFilter extends OncePerRequestFilter {
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-            if (service.validateToken(token, userDetails)) {
+            if (jwtService.validateToken(token, userDetails)) {
+
+                String jti = jwtService.extractJtiFromToken(token);
+
+                if(blacklistTokenRepo.f){
+
+                }
+
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails,
                         null, userDetails.getAuthorities());
                 authToken.setDetails(new WebAuthenticationDetailsSource()
