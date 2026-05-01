@@ -17,21 +17,17 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 
 @Service
 public class JWTService {
 
-    private final TokenService tokenService;
     @Value("${jwt.secret}")
     private String secretKey;
 
-    public JWTService(TokenService tokenService) {
-        this.tokenService = tokenService;
-    }
-
     public String generateAccessToken(String username) {
-        String jti = tokenService.generateJti();
+        String jti = generateJti();
 
         Map<String, Object> claims = new HashMap<>();
 
@@ -114,6 +110,10 @@ public class JWTService {
         }
 
         return token;
+    }
+
+    public String generateJti() {
+        return UUID.randomUUID().toString();
     }
 
     public String extractJtiFromToken(String token) {

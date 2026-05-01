@@ -32,10 +32,6 @@ public class TokenService {
         return refreshToken.getToken();
     }
 
-    public String generateJti() {
-        return UUID.randomUUID().toString();
-    }
-
     public String generateCsrfToken(String refreshToken){
         RefreshToken token = repo.findByToken(refreshToken)
                 .orElseThrow(() -> new InvalidRefreshTokenException("Invalid refresh token"));
